@@ -1,0 +1,72 @@
+# -- Overrides the chart's name.
+nameOverride: ""
+# -- Overrides the chart's computed fullname.
+fullnameOverride: ""
+# -- Additional labels to add into metadata.
+additionalLabels: {}
+# app: karpenter
+
+# -- Additional annotations to add into metadata.
+additionalAnnotations: {}
+# -- Image pull policy for Docker images.
+imagePullPolicy: IfNotPresent
+# -- Image pull secrets for Docker images.
+imagePullSecrets: []
+serviceAccount:
+  # -- Specifies if a ServiceAccount should be created.
+  create: true
+  # -- The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template.
+  name: ""
+  # -- Additional annotations for the ServiceAccount.
+  annotations: {}
+replicas: 1
+# -- Strategy for updating the pod.
+strategy:
+  type: Recreate
+# -- Additional labels for the pod.
+podLabels: {}
+# -- Additional annotations for the pod.
+podAnnotations: {}
+# -- SecurityContext for the pod.
+podSecurityContext:
+  fsGroup: 1000
+# -- PriorityClass name for the pod.
+priorityClassName: system-cluster-critical
+# -- Override the default termination grace period for the pod.
+terminationGracePeriodSeconds:
+# -- Bind the pod to the host network.
+# This is required when using a custom CNI.
+hostNetwork: false
+# -- Node selectors to schedule the pod to nodes with labels.
+nodeSelector:
+  kubernetes.io/os: linux
+# -- Affinity rules for scheduling the pod.
+affinity: {}
+# -- Tolerations to allow the pod to be scheduled to nodes with taints.
+tolerations: []
+webhook:
+  # -- Webhook image.
+  image: "none"
+  # -- SecurityContext for the webhook container.
+  securityContext: {}
+  # -- The container port to use for the webhook.
+  port: 8443
+  # -- Additional environment variables for the webhook pod.
+  env: []
+  # - name: AWS_REGION
+  # - value: eu-west-1
+
+  # -- Resources for the webhook pod.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 50Mi
+  # -- Webhook log level, defaults to the global log level
+  logLevel: ""
+# -- Global log level
+logLevel: debug
+

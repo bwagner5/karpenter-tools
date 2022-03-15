@@ -1,0 +1,29 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: capacity-type-distribution.k8s.aws
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ctd.labels" . | nindent 4 }}
+  {{- with .Values.additionalAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+webhooks:
+  - name: capacity-type-distribution.k8s.aws
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      service:
+        name: {{ include "ctd.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+    failurePolicy: Ignore
+    sideEffects: None
+    rules:
+      - apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        resources:
+          - pods
+        operations:
+          - CREATE
