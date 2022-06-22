@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -34,7 +36,8 @@ func main() {
 		cpu := node.computeCPUOverhead()
 		memENI := node.computeENIMemoryOverhead()
 		mem := node.computeMemoryOverhead()
-		t.AddLine(*it.InstanceType, cpu.String(), memENI.String(), mem.String(), memENI.AsApproximateFloat64()/mem.AsApproximateFloat64())
+		//t.AddLine(*it.InstanceType, cpu.String(), memENI.String(), mem.String(), fmt.Sprintf("%.2f%%", (1-memENI.AsApproximateFloat64()/mem.AsApproximateFloat64())*100))
+		t.AddLine(*it.InstanceType, formatResource(cpu), formatResource(memENI), formatResource(mem), fmt.Sprintf("%s%%", formatFloat((1-(memENI.AsApproximateFloat64()/mem.AsApproximateFloat64()))*100, 2)))
 	}
 	t.Print()
 }
@@ -133,4 +136,52 @@ func (i KubeOverhead) computeMemoryOverhead() resource.Quantity {
 		}
 	}
 	return memOverhead
+}
+
+func formatResource(r resource.Quantity) string {
+	withCommas := ""
+	j := 0
+	unit := ""
+	for i, p := range reverse(r.String()) {
+		if _, err := strconv.Atoi(string(p)); err != nil {
+			j++
+			unit += string(p)
+			continue
+		}
+		if (i-j)%3 == 0 && (i-j) != 0 {
+			withCommas += ","
+		}
+		withCommas += string(p)
+	}
+	return reverse(unit + withCommas)
+}
+
+func formatFloat(f float64, precision int) string {
+	s := strconv.FormatFloat(f, 'f', precision, 64)
+	parts := strings.Split(s, ".")
+	if len(parts) == 1 {
+		return s
+	}
+	reversed := reverse(parts[0])
+	withCommas := ""
+	for i, p := range reversed {
+		if i%3 == 0 && i != 0 && p != '-' {
+			withCommas += ","
+		}
+		withCommas += string(p)
+	}
+	s = strings.Join([]string{reverse(withCommas), parts[1]}, ".")
+	s = strings.TrimRight(strings.TrimRight(s, "0"), ".")
+	if f >= 0 {
+		return fmt.Sprintf(" %s", s)
+	}
+	return s
+}
+
+func reverse(s string) string {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
 }
